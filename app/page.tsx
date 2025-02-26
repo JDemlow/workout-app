@@ -1,14 +1,12 @@
-import StrengthTraining from "../app/components/StrengthTraining";
-import CardioTracking from "../app/components/CardioTracking";
-import CalorieTracking from "../app/components/CalorieTracking";
-
+// app/page.tsx
 export default function Home() {
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>Workout Tracker</h1>
-      <StrengthTraining />
-      <CardioTracking />
-      <CalorieTracking />
-    </main>
+    <div className="p-6">
+      <h1 className="text-3xl font-bold mb-4">Workout Tracker</h1>
+      <p className="text-gray-700">
+        Welcome to your workout app! Use the navigation above to track your
+        workouts, cardio sessions, and calorie intake.
+      </p>
+    </div>
   );
 }
