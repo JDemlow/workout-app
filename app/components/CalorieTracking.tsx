@@ -1,5 +1,7 @@
+// app/components/CalorieTracking.tsx
 "use client";
 import { useState, useEffect } from "react";
+import { Edit, Trash2 } from "lucide-react";
 
 interface CalorieEntry {
   id?: number;
@@ -14,7 +16,6 @@ export default function CalorieTracking() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
 
   // Fetch existing calorie entries on mount
   useEffect(() => {
@@ -36,7 +37,6 @@ export default function CalorieTracking() {
     setMeal("");
     setCalories("");
     setEditingId(null);
-    setIsEditing(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,7 +49,7 @@ export default function CalorieTracking() {
     };
 
     try {
-      if (isEditing && editingId) {
+      if (editingId) {
         // Update existing entry
         const response = await fetch(`/api/calorie-entries/${editingId}`, {
           method: "PUT",
@@ -62,15 +62,11 @@ export default function CalorieTracking() {
         }
 
         const updatedEntry = await response.json();
-
-        // Update the entries list with the edited entry
         setEntries(
           entries.map((entry) =>
             entry.id === editingId ? updatedEntry : entry
           )
         );
-
-        resetForm();
       } else {
         // Create new entry
         const response = await fetch("/api/calorie-entries", {
@@ -84,23 +80,20 @@ export default function CalorieTracking() {
         }
 
         const createdEntry = await response.json();
-
-        // Update the entries list with the new entry
         setEntries([...entries, createdEntry]);
-
-        resetForm();
       }
+
+      resetForm();
     } catch (err) {
       console.error(err);
       setError(
-        isEditing
+        editingId
           ? "Error updating calorie entry"
           : "Error logging calorie entry"
       );
     }
   };
 
-  // Delete a calorie entry
   const handleDelete = async (id: number) => {
     try {
       const response = await fetch(`/api/calorie-entries/${id}`, {
@@ -112,140 +105,157 @@ export default function CalorieTracking() {
         throw new Error(errorData.error || "Failed to delete calorie entry");
       }
 
-      // Remove the entry from state after successful deletion
       setEntries(entries.filter((entry) => entry.id !== id));
-
-      // If we were editing this entry, reset the form
-      if (editingId === id) {
-        resetForm();
-      }
     } catch (err) {
       console.error(err);
       setError("Error deleting calorie entry");
     }
   };
 
-  // Start editing an entry
-  const handleEdit = (entry: CalorieEntry) => {
-    if (entry.id) {
-      setEditingId(entry.id);
-      setMeal(entry.meal);
-      setCalories(entry.calories.toString());
-      setIsEditing(true);
-    }
-  };
-
-  // Cancel editing
-  const handleCancelEdit = () => {
-    resetForm();
-  };
-
   return (
-    <section className="max-w-md mx-auto p-4 bg-white shadow-md rounded my-4">
-      <h2 className="text-2xl font-semibold mb-4">
-        {isEditing ? "Edit Calorie Entry" : "Calorie Tracking"}
-      </h2>
+    <section className="p-4 max-w-md mx-auto">
+      <div className="bg-white shadow-md rounded-lg overflow-hidden">
+        <h2 className="text-2xl font-bold p-4 bg-gray-100 text-center">
+          Calorie Tracker
+        </h2>
 
-      {error && <p className="text-red-500 mb-4">{error}</p>}
+        {error && (
+          <div className="bg-red-100 text-red-700 p-3 text-center">{error}</div>
+        )}
 
-      {loading ? (
-        <p>Loading entries...</p>
-      ) : (
-        <>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label
-                htmlFor="meal"
-                className="block text-sm font-medium text-gray-700"
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          <div>
+            <label
+              htmlFor="meal"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Meal Description
+            </label>
+            <input
+              id="meal"
+              type="text"
+              value={meal}
+              onChange={(e) => setMeal(e.target.value)}
+              required
+              placeholder="What did you eat?"
+              className="
+                w-full 
+                px-4 
+                py-3 
+                border 
+                border-gray-300 
+                rounded-lg 
+                focus:ring-2 
+                focus:ring-blue-500 
+                focus:border-transparent 
+                text-base"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="calories"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Calories
+            </label>
+            <input
+              id="calories"
+              type="number"
+              value={calories}
+              onChange={(e) => setCalories(e.target.value)}
+              required
+              placeholder="Enter calorie count"
+              className="
+                w-full 
+                px-4 
+                py-3 
+                border 
+                border-gray-300 
+                rounded-lg 
+                focus:ring-2 
+                focus:ring-blue-500 
+                focus:border-transparent 
+                text-base"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="
+              w-full 
+              bg-blue-600 
+              text-white 
+              py-3 
+              rounded-lg 
+              hover:bg-blue-700 
+              transition-colors 
+              text-base 
+              font-semibold 
+              active:scale-95"
+          >
+            {editingId ? "Update Meal" : "Log Meal"}
+          </button>
+        </form>
+
+        {loading && (
+          <div className="text-center p-4 text-gray-500">
+            Loading entries...
+          </div>
+        )}
+
+        {!loading && entries.length > 0 && (
+          <div className="divide-y divide-gray-200">
+            {entries.map((entry) => (
+              <div
+                key={entry.id}
+                className="
+                  flex 
+                  justify-between 
+                  items-center 
+                  p-4 
+                  hover:bg-gray-50 
+                  transition-colors"
               >
-                Meal Description
-              </label>
-              <input
-                id="meal"
-                type="text"
-                value={meal}
-                onChange={(e) => setMeal(e.target.value)}
-                required
-                className="mt-1 block w-full rounded border-gray-300 shadow-sm"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="calories"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Calories
-              </label>
-              <input
-                id="calories"
-                type="number"
-                value={calories}
-                onChange={(e) => setCalories(e.target.value)}
-                required
-                className="mt-1 block w-full rounded border-gray-300 shadow-sm"
-              />
-            </div>
-
-            <div className="flex space-x-2">
-              <button
-                type="submit"
-                className={`flex-1 py-2 px-4 ${
-                  isEditing
-                    ? "bg-green-500 hover:bg-green-600"
-                    : "bg-red-500 hover:bg-red-600"
-                } text-white rounded`}
-              >
-                {isEditing ? "Update Meal" : "Log Meal"}
-              </button>
-
-              {isEditing && (
-                <button
-                  type="button"
-                  onClick={handleCancelEdit}
-                  className="flex-1 py-2 px-4 bg-gray-500 text-white rounded hover:bg-gray-600"
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
-          </form>
-
-          {entries.length > 0 && (
-            <div className="mt-6">
-              <h3 className="text-xl font-semibold">Logged Meals</h3>
-              <ul className="mt-2">
-                {entries.map((entry) => (
-                  <li
-                    key={entry.id}
-                    className="border-b py-2 flex justify-between items-center"
+                <div>
+                  <p className="font-medium text-gray-900">{entry.meal}</p>
+                  <p className="text-sm text-gray-500">
+                    {entry.calories} calories
+                  </p>
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => {
+                      setEditingId(entry.id!);
+                      setMeal(entry.meal);
+                      setCalories(entry.calories.toString());
+                    }}
+                    className="
+                      p-2 
+                      bg-blue-100 
+                      rounded-full 
+                      hover:bg-blue-200 
+                      active:scale-95"
                   >
-                    <div>
-                      <div className="font-medium">{entry.meal}</div>
-                      <div className="text-sm text-gray-600">
-                        {entry.calories} calories
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleEdit(entry)}
-                        className="text-sm text-blue-500 hover:underline"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => entry.id && handleDelete(entry.id)}
-                        className="text-sm text-red-500 hover:underline"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </>
-      )}
+                    <Edit className="w-5 h-5 text-blue-600" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(entry.id!)}
+                    className="
+                      p-2 
+                      bg-red-100 
+                      rounded-full 
+                      hover:bg-red-200 
+                      active:scale-95"
+                  >
+                    <Trash2 className="w-5 h-5 text-red-600" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </section>
   );
 }
