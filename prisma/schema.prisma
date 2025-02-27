@@ -18,3 +18,19 @@ model StrengthWorkout {
   weight    Float
   createdAt DateTime @default(now())
 }
+
+model CardioSession {
+  id        Int      @id @default(autoincrement())
+  activity  String
+  duration  Int      // in minutes
+  distance  Float    // in miles
+  createdAt DateTime @default(now())
+}
+
+model CalorieEntry {
+  id        Int      @id @default(autoincrement())
+  meal      String
+  calories  Int
+  createdAt DateTime @default(now())
+}
+
