@@ -1,7 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface Workout {
+  id?: number;
   exercise: string;
   sets: number;
   reps: number;
@@ -9,31 +10,57 @@ interface Workout {
 }
 
 export default function StrengthTraining() {
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [exercise, setExercise] = useState("");
   const [sets, setSets] = useState("");
   const [reps, setReps] = useState("");
   const [weight, setWeight] = useState("");
-  const [workouts, setWorkouts] = useState<Workout[]>([]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Fetch existing workouts on mount
+  useEffect(() => {
+    fetch("/api/strength-workouts")
+      .then((res) => res.json())
+      .then((data) => setWorkouts(data))
+      .catch((err) => console.error("Failed to fetch workouts", err));
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newWorkout: Workout = {
       exercise,
-      sets: parseInt(sets, 10),
-      reps: parseInt(reps, 10),
-      weight: parseFloat(weight),
+      sets: Number(sets),
+      reps: Number(reps),
+      weight: Number(weight),
     };
-    setWorkouts([...workouts, newWorkout]);
-    setExercise("");
-    setSets("");
-    setReps("");
-    setWeight("");
+
+    try {
+      const response = await fetch("/api/strength-workouts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newWorkout),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to create workout");
+      }
+      const createdWorkout = await response.json();
+      // Update the workouts list
+      setWorkouts([...workouts, createdWorkout]);
+
+      // Reset form fields
+      setExercise("");
+      setSets("");
+      setReps("");
+      setWeight("");
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
     <section className="max-w-md mx-auto p-4 bg-white shadow-md rounded">
       <h2 className="text-2xl font-semibold mb-4">Strength Training</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Form Fields */}
         <div>
           <label
             htmlFor="exercise"
@@ -105,12 +132,14 @@ export default function StrengthTraining() {
           Log Workout
         </button>
       </form>
+
+      {/* Display Logged Workouts */}
       {workouts.length > 0 && (
         <div className="mt-6">
           <h3 className="text-xl font-semibold">Logged Workouts</h3>
           <ul className="mt-2">
-            {workouts.map((workout, index) => (
-              <li key={index} className="border-b py-2">
+            {workouts.map((workout) => (
+              <li key={workout.id} className="border-b py-2">
                 <div className="font-medium">{workout.exercise}</div>
                 <div className="text-sm text-gray-600">
                   {workout.sets} sets x {workout.reps} reps @ {workout.weight}{" "}
