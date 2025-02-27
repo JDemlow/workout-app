@@ -49,13 +49,29 @@ export default function CalorieTracking() {
       }
       const createdEntry = await response.json();
       setEntries([...entries, createdEntry]);
-
-      // Reset form fields
       setMeal("");
       setCalories("");
     } catch (err) {
       console.error(err);
       setError("Error logging calorie entry");
+    }
+  };
+
+  // Delete a calorie entry
+  const handleDelete = async (id: number) => {
+    try {
+      const response = await fetch(`/api/calorie-entries/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete calorie entry");
+      }
+      // Remove the entry from state after successful deletion
+      setEntries(entries.filter((entry) => entry.id !== id));
+    } catch (err) {
+      console.error(err);
+      setError("Error deleting calorie entry");
     }
   };
 
@@ -113,11 +129,22 @@ export default function CalorieTracking() {
               <h3 className="text-xl font-semibold">Logged Meals</h3>
               <ul className="mt-2">
                 {entries.map((entry) => (
-                  <li key={entry.id} className="border-b py-2">
-                    <div className="font-medium">{entry.meal}</div>
-                    <div className="text-sm text-gray-600">
-                      {entry.calories} calories
+                  <li
+                    key={entry.id}
+                    className="border-b py-2 flex justify-between items-center"
+                  >
+                    <div>
+                      <div className="font-medium">{entry.meal}</div>
+                      <div className="text-sm text-gray-600">
+                        {entry.calories} calories
+                      </div>
                     </div>
+                    <button
+                      onClick={() => entry.id && handleDelete(entry.id)}
+                      className="text-sm text-red-500 hover:underline"
+                    >
+                      Delete
+                    </button>
                   </li>
                 ))}
               </ul>
