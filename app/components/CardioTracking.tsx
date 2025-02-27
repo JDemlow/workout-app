@@ -15,6 +15,8 @@ export default function CardioTracking() {
   const [distance, setDistance] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   // Fetch existing cardio sessions on mount
   useEffect(() => {
@@ -32,34 +34,73 @@ export default function CardioTracking() {
       });
   }, []);
 
+  const resetForm = () => {
+    setActivity("");
+    setDuration("");
+    setDistance("");
+    setEditingId(null);
+    setIsEditing(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    const newSession: CardioSession = {
+
+    const sessionData = {
       activity,
       duration: Number(duration),
       distance: Number(distance),
     };
 
     try {
-      const response = await fetch("/api/cardio-sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newSession),
-      });
-      if (!response.ok) {
-        throw new Error("Failed to create cardio session");
-      }
-      const createdSession = await response.json();
-      setSessions([...sessions, createdSession]);
+      if (isEditing && editingId) {
+        // Update existing session
+        const response = await fetch(`/api/cardio-sessions/${editingId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(sessionData),
+        });
 
-      // Reset form fields
-      setActivity("");
-      setDuration("");
-      setDistance("");
-    } catch (err) {
-      console.error(err);
-      setError("Error logging cardio session");
+        if (!response.ok) {
+          throw new Error("Failed to update cardio session");
+        }
+
+        const updatedSession = await response.json();
+
+        // Update the sessions list with the edited session
+        setSessions(
+          sessions.map((session) =>
+            session.id === editingId ? updatedSession : session
+          )
+        );
+
+        resetForm();
+      } else {
+        // Create new session
+        const response = await fetch("/api/cardio-sessions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(sessionData),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to create cardio session");
+        }
+
+        const createdSession = await response.json();
+
+        // Update the sessions list with the new session
+        setSessions([...sessions, createdSession]);
+
+        resetForm();
+      }
+    } catch (error) {
+      console.error(error);
+      setError(
+        isEditing
+          ? "Error updating cardio session"
+          : "Error logging cardio session"
+      );
     }
   };
 
@@ -69,22 +110,49 @@ export default function CardioTracking() {
       const response = await fetch(`/api/cardio-sessions/${id}`, {
         method: "DELETE",
       });
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to delete cardio session");
       }
+
       // Remove the session from state after successful deletion
       setSessions(sessions.filter((session) => session.id !== id));
+
+      // If we were editing this session, reset the form
+      if (editingId === id) {
+        resetForm();
+      }
     } catch (err) {
       console.error(err);
       setError("Error deleting cardio session");
     }
   };
 
+  // Start editing a session
+  const handleEdit = (session: CardioSession) => {
+    if (session.id) {
+      setEditingId(session.id);
+      setActivity(session.activity);
+      setDuration(session.duration.toString());
+      setDistance(session.distance.toString());
+      setIsEditing(true);
+    }
+  };
+
+  // Cancel editing
+  const handleCancelEdit = () => {
+    resetForm();
+  };
+
   return (
     <section className="max-w-md mx-auto p-4 bg-white shadow-md rounded my-4">
-      <h2 className="text-2xl font-semibold mb-4">Cardio Tracking</h2>
-      {error && <p className="text-red-500">{error}</p>}
+      <h2 className="text-2xl font-semibold mb-4">
+        {isEditing ? "Edit Cardio Session" : "Cardio Tracking"}
+      </h2>
+
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+
       {loading ? (
         <p>Loading sessions...</p>
       ) : (
@@ -138,12 +206,29 @@ export default function CardioTracking() {
                 className="mt-1 block w-full rounded border-gray-300 shadow-sm"
               />
             </div>
-            <button
-              type="submit"
-              className="w-full py-2 px-4 bg-green-500 text-white rounded hover:bg-green-600"
-            >
-              Log Cardio Session
-            </button>
+
+            <div className="flex space-x-2">
+              <button
+                type="submit"
+                className={`flex-1 py-2 px-4 ${
+                  isEditing
+                    ? "bg-green-500 hover:bg-green-600"
+                    : "bg-green-500 hover:bg-green-600"
+                } text-white rounded`}
+              >
+                {isEditing ? "Update Session" : "Log Cardio Session"}
+              </button>
+
+              {isEditing && (
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="flex-1 py-2 px-4 bg-gray-500 text-white rounded hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
           </form>
 
           {sessions.length > 0 && (
@@ -161,12 +246,20 @@ export default function CardioTracking() {
                         {session.duration} minutes, {session.distance} miles
                       </div>
                     </div>
-                    <button
-                      onClick={() => session.id && handleDelete(session.id)}
-                      className="text-sm text-red-500 hover:underline"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleEdit(session)}
+                        className="text-sm text-blue-500 hover:underline"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => session.id && handleDelete(session.id)}
+                        className="text-sm text-red-500 hover:underline"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>
