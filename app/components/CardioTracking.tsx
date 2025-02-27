@@ -63,6 +63,24 @@ export default function CardioTracking() {
     }
   };
 
+  // Delete a cardio session
+  const handleDelete = async (id: number) => {
+    try {
+      const response = await fetch(`/api/cardio-sessions/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete cardio session");
+      }
+      // Remove the session from state after successful deletion
+      setSessions(sessions.filter((session) => session.id !== id));
+    } catch (err) {
+      console.error(err);
+      setError("Error deleting cardio session");
+    }
+  };
+
   return (
     <section className="max-w-md mx-auto p-4 bg-white shadow-md rounded my-4">
       <h2 className="text-2xl font-semibold mb-4">Cardio Tracking</h2>
@@ -133,11 +151,22 @@ export default function CardioTracking() {
               <h3 className="text-xl font-semibold">Logged Cardio Sessions</h3>
               <ul className="mt-2">
                 {sessions.map((session) => (
-                  <li key={session.id} className="border-b py-2">
-                    <div className="font-medium">{session.activity}</div>
-                    <div className="text-sm text-gray-600">
-                      {session.duration} minutes, {session.distance} miles
+                  <li
+                    key={session.id}
+                    className="border-b py-2 flex justify-between items-center"
+                  >
+                    <div>
+                      <div className="font-medium">{session.activity}</div>
+                      <div className="text-sm text-gray-600">
+                        {session.duration} minutes, {session.distance} miles
+                      </div>
                     </div>
+                    <button
+                      onClick={() => session.id && handleDelete(session.id)}
+                      className="text-sm text-red-500 hover:underline"
+                    >
+                      Delete
+                    </button>
                   </li>
                 ))}
               </ul>
