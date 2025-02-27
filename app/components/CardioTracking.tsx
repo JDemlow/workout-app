@@ -1,11 +1,13 @@
+// app/components/CardioTracking.tsx
 "use client";
 import { useState, useEffect } from "react";
+import { Edit, Trash2 } from "lucide-react";
 
 interface CardioSession {
   id?: number;
   activity: string;
-  duration: number; // in minutes
-  distance: number; // in miles
+  duration: number;
+  distance: number;
 }
 
 export default function CardioTracking() {
@@ -16,7 +18,6 @@ export default function CardioTracking() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
 
   // Fetch existing cardio sessions on mount
   useEffect(() => {
@@ -39,7 +40,6 @@ export default function CardioTracking() {
     setDuration("");
     setDistance("");
     setEditingId(null);
-    setIsEditing(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,7 +53,7 @@ export default function CardioTracking() {
     };
 
     try {
-      if (isEditing && editingId) {
+      if (editingId) {
         // Update existing session
         const response = await fetch(`/api/cardio-sessions/${editingId}`, {
           method: "PUT",
@@ -66,15 +66,11 @@ export default function CardioTracking() {
         }
 
         const updatedSession = await response.json();
-
-        // Update the sessions list with the edited session
         setSessions(
           sessions.map((session) =>
             session.id === editingId ? updatedSession : session
           )
         );
-
-        resetForm();
       } else {
         // Create new session
         const response = await fetch("/api/cardio-sessions", {
@@ -88,23 +84,20 @@ export default function CardioTracking() {
         }
 
         const createdSession = await response.json();
-
-        // Update the sessions list with the new session
         setSessions([...sessions, createdSession]);
-
-        resetForm();
       }
-    } catch (error) {
-      console.error(error);
+
+      resetForm();
+    } catch (err) {
+      console.error(err);
       setError(
-        isEditing
+        editingId
           ? "Error updating cardio session"
           : "Error logging cardio session"
       );
     }
   };
 
-  // Delete a cardio session
   const handleDelete = async (id: number) => {
     try {
       const response = await fetch(`/api/cardio-sessions/${id}`, {
@@ -116,157 +109,188 @@ export default function CardioTracking() {
         throw new Error(errorData.error || "Failed to delete cardio session");
       }
 
-      // Remove the session from state after successful deletion
       setSessions(sessions.filter((session) => session.id !== id));
-
-      // If we were editing this session, reset the form
-      if (editingId === id) {
-        resetForm();
-      }
     } catch (err) {
       console.error(err);
       setError("Error deleting cardio session");
     }
   };
 
-  // Start editing a session
-  const handleEdit = (session: CardioSession) => {
-    if (session.id) {
-      setEditingId(session.id);
-      setActivity(session.activity);
-      setDuration(session.duration.toString());
-      setDistance(session.distance.toString());
-      setIsEditing(true);
-    }
-  };
-
-  // Cancel editing
-  const handleCancelEdit = () => {
-    resetForm();
-  };
-
   return (
-    <section className="max-w-md mx-auto p-4 bg-white shadow-md rounded my-4">
-      <h2 className="text-2xl font-semibold mb-4">
-        {isEditing ? "Edit Cardio Session" : "Cardio Tracking"}
-      </h2>
+    <section className="p-4 max-w-md mx-auto">
+      <div className="bg-white shadow-md rounded-lg overflow-hidden">
+        <h2 className="text-2xl font-bold p-4 bg-gray-100 text-center">
+          Cardio Tracker
+        </h2>
 
-      {error && <p className="text-red-500 mb-4">{error}</p>}
+        {error && (
+          <div className="bg-red-100 text-red-700 p-3 text-center">{error}</div>
+        )}
 
-      {loading ? (
-        <p>Loading sessions...</p>
-      ) : (
-        <>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label
-                htmlFor="activity"
-                className="block text-sm font-medium text-gray-700"
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          <div>
+            <label
+              htmlFor="activity"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Activity
+            </label>
+            <input
+              id="activity"
+              type="text"
+              value={activity}
+              onChange={(e) => setActivity(e.target.value)}
+              required
+              placeholder="What activity did you do?"
+              className="
+                w-full 
+                px-4 
+                py-3 
+                border 
+                border-gray-300 
+                rounded-lg 
+                focus:ring-2 
+                focus:ring-blue-500 
+                focus:border-transparent 
+                text-base"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="duration"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Duration (minutes)
+            </label>
+            <input
+              id="duration"
+              type="number"
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+              required
+              placeholder="Enter duration"
+              className="
+                w-full 
+                px-4 
+                py-3 
+                border 
+                border-gray-300 
+                rounded-lg 
+                focus:ring-2 
+                focus:ring-blue-500 
+                focus:border-transparent 
+                text-base"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="distance"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Distance (miles)
+            </label>
+            <input
+              id="distance"
+              type="number"
+              value={distance}
+              onChange={(e) => setDistance(e.target.value)}
+              required
+              placeholder="Enter distance"
+              className="
+                w-full 
+                px-4 
+                py-3 
+                border 
+                border-gray-300 
+                rounded-lg 
+                focus:ring-2 
+                focus:ring-blue-500 
+                focus:border-transparent 
+                text-base"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="
+              w-full 
+              bg-green-600 
+              text-white 
+              py-3 
+              rounded-lg 
+              hover:bg-green-700 
+              transition-colors 
+              text-base 
+              font-semibold 
+              active:scale-95"
+          >
+            {editingId ? "Update Session" : "Log Cardio"}
+          </button>
+        </form>
+
+        {loading && (
+          <div className="text-center p-4 text-gray-500">
+            Loading sessions...
+          </div>
+        )}
+
+        {!loading && sessions.length > 0 && (
+          <div className="divide-y divide-gray-200">
+            {sessions.map((session) => (
+              <div
+                key={session.id}
+                className="
+                  flex 
+                  justify-between 
+                  items-center 
+                  p-4 
+                  hover:bg-gray-50 
+                  transition-colors"
               >
-                Activity
-              </label>
-              <input
-                id="activity"
-                type="text"
-                value={activity}
-                onChange={(e) => setActivity(e.target.value)}
-                required
-                className="mt-1 block w-full rounded border-gray-300 shadow-sm"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="duration"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Duration (minutes)
-              </label>
-              <input
-                id="duration"
-                type="number"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                required
-                className="mt-1 block w-full rounded border-gray-300 shadow-sm"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="distance"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Distance (miles)
-              </label>
-              <input
-                id="distance"
-                type="number"
-                value={distance}
-                onChange={(e) => setDistance(e.target.value)}
-                required
-                className="mt-1 block w-full rounded border-gray-300 shadow-sm"
-              />
-            </div>
-
-            <div className="flex space-x-2">
-              <button
-                type="submit"
-                className={`flex-1 py-2 px-4 ${
-                  isEditing
-                    ? "bg-green-500 hover:bg-green-600"
-                    : "bg-green-500 hover:bg-green-600"
-                } text-white rounded`}
-              >
-                {isEditing ? "Update Session" : "Log Cardio Session"}
-              </button>
-
-              {isEditing && (
-                <button
-                  type="button"
-                  onClick={handleCancelEdit}
-                  className="flex-1 py-2 px-4 bg-gray-500 text-white rounded hover:bg-gray-600"
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
-          </form>
-
-          {sessions.length > 0 && (
-            <div className="mt-6">
-              <h3 className="text-xl font-semibold">Logged Cardio Sessions</h3>
-              <ul className="mt-2">
-                {sessions.map((session) => (
-                  <li
-                    key={session.id}
-                    className="border-b py-2 flex justify-between items-center"
+                <div>
+                  <p className="font-medium text-gray-900">
+                    {session.activity}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {session.duration} mins, {session.distance} miles
+                  </p>
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => {
+                      setEditingId(session.id!);
+                      setActivity(session.activity);
+                      setDuration(session.duration.toString());
+                      setDistance(session.distance.toString());
+                    }}
+                    className="
+                      p-2 
+                      bg-blue-100 
+                      rounded-full 
+                      hover:bg-blue-200 
+                      active:scale-95"
                   >
-                    <div>
-                      <div className="font-medium">{session.activity}</div>
-                      <div className="text-sm text-gray-600">
-                        {session.duration} minutes, {session.distance} miles
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleEdit(session)}
-                        className="text-sm text-blue-500 hover:underline"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => session.id && handleDelete(session.id)}
-                        className="text-sm text-red-500 hover:underline"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </>
-      )}
+                    <Edit className="w-5 h-5 text-blue-600" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(session.id!)}
+                    className="
+                      p-2 
+                      bg-red-100 
+                      rounded-full 
+                      hover:bg-red-200 
+                      active:scale-95"
+                  >
+                    <Trash2 className="w-5 h-5 text-red-600" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </section>
   );
 }
