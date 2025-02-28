@@ -1,9 +1,7 @@
 // app/layout.tsx
 import "./globals.css";
 import Link from "next/link";
-import { Inter } from "next/font/google";
-
-const inter = Inter({ subsets: ["latin"] });
+import { Home, Dumbbell, Footprints, Soup } from "lucide-react";
 
 export const metadata = {
   title: "Workout Tracker",
@@ -17,31 +15,99 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <header className="bg-blue-200 p-4">
-          <nav>
-            <ul className="flex space-x-4">
-              <li>
-                <Link href="/">Home</Link>
-              </li>
-              <li>
-                <Link href="/strength">Strength</Link>
-              </li>
-              <li>
-                <Link href="/cardio">Cardio</Link>
-              </li>
-              <li>
-                <Link href="/calorie">Calorie</Link>
-              </li>
-            </ul>
-          </nav>
-        </header>
+      <body className="bg-[#C7F9CC] min-h-screen">
+        <div className="max-w-md mx-auto relative min-h-screen flex flex-col">
+          <header
+            className="bg-gradient-to-r from-[#57CC99] to-[#38A3A5] p-4 shadow-md"
+            role="banner"
+          >
+            <nav>
+              <ul className="flex justify-between items-center">
+                <li>
+                  <Link
+                    href="/"
+                    className="
+                      text-white 
+                      flex 
+                      items-center 
+                      space-x-2 
+                      hover:bg-white/20 
+                      p-2 
+                      rounded-xl 
+                      transition-colors"
+                    aria-label="Home"
+                  >
+                    <Home className="w-6 h-6" />
+                    <span className="sr-only">Home</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/strength"
+                    className="
+                      text-white 
+                      flex 
+                      items-center 
+                      space-x-2 
+                      hover:bg-white/20 
+                      p-2 
+                      rounded-xl 
+                      transition-colors"
+                    aria-label="Strength Workouts"
+                  >
+                    <Dumbbell className="w-6 h-6" />
+                    <span className="sr-only">Strength</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/cardio"
+                    className="
+                      text-white 
+                      flex 
+                      items-center 
+                      space-x-2 
+                      hover:bg-white/20 
+                      p-2 
+                      rounded-xl 
+                      transition-colors"
+                    aria-label="Cardio Sessions"
+                  >
+                    <Footprints className="w-6 h-6" />
+                    <span className="sr-only">Cardio</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/calorie"
+                    className="
+                      text-white 
+                      flex 
+                      items-center 
+                      space-x-2 
+                      hover:bg-white/20 
+                      p-2 
+                      rounded-xl 
+                      transition-colors"
+                    aria-label="Calorie Tracking"
+                  >
+                    <Soup className="w-6 h-6" />
+                    <span className="sr-only">Calories</span>
+                  </Link>
+                </li>
+              </ul>
+            </nav>
+          </header>
 
-        <main>{children}</main>
+          <main className="flex-grow">{children}</main>
 
-        <footer className="bg-blue-200 p-4 text-center">
-          <p>© 2025 My Workout App</p>
-        </footer>
+          <footer
+            className="bg-[#22577A] text-white p-4 text-center"
+            role="contentinfo"
+          >
+            <p>© 2025 My Workout App</p>
+          </footer>
+        </div>
       </body>
     </html>
   );
