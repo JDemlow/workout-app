@@ -267,10 +267,10 @@ export default function ProgressTracking() {
 
   // Render charts and statistics
   return (
-    <section className="max-w-4xl mx-auto">
-      <div className="bg-[#C7F9CC] rounded-3xl overflow-hidden shadow-lg mt-4">
-        <div className="bg-gradient-to-r from-[#57CC99] to-[#38A3A5] p-4">
-          <h2 className="text-2xl font-bold text-white text-center">
+    <section className="max-w-4xl mx-auto px-1 sm:px-4">
+      <div className="bg-[#C7F9CC] rounded-3xl overflow-hidden shadow-lg mt-2 md:mt-4">
+        <div className="bg-gradient-to-r from-[#57CC99] to-[#38A3A5] p-3 md:p-4">
+          <h2 className="text-xl md:text-2xl font-bold text-white text-center">
             Fitness Progress Dashboard
           </h2>
         </div>
@@ -278,9 +278,9 @@ export default function ProgressTracking() {
         {error && (
           <div
             role="alert"
-            className="bg-red-600 text-white p-3 text-center flex items-center justify-center"
+            className="bg-red-600 text-white p-2 text-center flex items-center justify-center text-sm"
           >
-            <Info className="mr-2 w-5 h-5" aria-hidden="true" />
+            <Info className="mr-2 w-4 h-4" aria-hidden="true" />
             {error}
           </div>
         )}
@@ -288,62 +288,115 @@ export default function ProgressTracking() {
         {loading ? (
           <div className="text-center p-8">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#22577A] border-r-transparent"></div>
-            <p className="mt-2 text-gray-600">Loading your fitness data...</p>
+            <p className="mt-2 text-gray-600 text-sm">
+              Loading your fitness data...
+            </p>
           </div>
         ) : (
-          <div className="p-4 md:p-6">
+          <div className="p-3 md:p-6">
             {/* Time range selector */}
-            <div className="mb-6 flex justify-center space-x-4">
-              <button
-                onClick={() => setTimeRange("week")}
-                className={`px-4 py-2 rounded-lg ${
-                  timeRange === "week"
-                    ? "bg-[#22577A] text-white"
-                    : "bg-gray-200 text-gray-700"
-                }`}
-              >
-                Last Week
-              </button>
-              <button
-                onClick={() => setTimeRange("month")}
-                className={`px-4 py-2 rounded-lg ${
-                  timeRange === "month"
-                    ? "bg-[#22577A] text-white"
-                    : "bg-gray-200 text-gray-700"
-                }`}
-              >
-                Last Month
-              </button>
-              <button
-                onClick={() => setTimeRange("all")}
-                className={`px-4 py-2 rounded-lg ${
-                  timeRange === "all"
-                    ? "bg-[#22577A] text-white"
-                    : "bg-gray-200 text-gray-700"
-                }`}
-              >
-                All Time
-              </button>
+            <div className="mb-5 flex justify-center">
+              <div className="grid grid-cols-3 bg-gray-100 rounded-full p-1 w-full max-w-xs">
+                <button
+                  onClick={() => setTimeRange("week")}
+                  className={`rounded-full py-1.5 text-xs font-medium transition-colors ${
+                    timeRange === "week"
+                      ? "bg-[#22577A] text-white"
+                      : "bg-transparent text-gray-700"
+                  }`}
+                >
+                  Week
+                </button>
+                <button
+                  onClick={() => setTimeRange("month")}
+                  className={`rounded-full py-1.5 text-xs font-medium transition-colors ${
+                    timeRange === "month"
+                      ? "bg-[#22577A] text-white"
+                      : "bg-transparent text-gray-700"
+                  }`}
+                >
+                  Month
+                </button>
+                <button
+                  onClick={() => setTimeRange("all")}
+                  className={`rounded-full py-1.5 text-xs font-medium transition-colors ${
+                    timeRange === "all"
+                      ? "bg-[#22577A] text-white"
+                      : "bg-transparent text-gray-700"
+                  }`}
+                >
+                  All
+                </button>
+              </div>
             </div>
 
-            {/* Stats Summary */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-              {Object.entries(calculateStats()).map(([key, value]) => (
-                <div key={key} className="bg-white p-4 rounded-xl shadow-sm">
-                  <p className="text-gray-500 text-sm capitalize">
-                    {key
-                      .replace(/([A-Z])/g, " $1")
-                      .replace(/^./, (str) => str.toUpperCase())}
-                  </p>
-                  <p className="text-2xl font-bold text-[#22577A]">{value}</p>
-                </div>
-              ))}
+            {/* Stats Summary - Responsive and Accessible */}
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              <div className="bg-white p-3 rounded-xl shadow-md flex flex-col justify-between">
+                <p
+                  className="text-gray-500 text-xs line-clamp-1 mb-1"
+                  aria-label="Workouts"
+                >
+                  Workouts
+                </p>
+                <p className="text-xl font-bold text-[#22577A] break-words">
+                  {calculateStats().totalWorkouts}
+                </p>
+              </div>
+
+              <div className="bg-white p-3 rounded-xl shadow-md flex flex-col justify-between">
+                <p
+                  className="text-gray-500 text-xs line-clamp-1 mb-1"
+                  aria-label="Cardio Sessions"
+                >
+                  Sessions
+                </p>
+                <p className="text-xl font-bold text-[#22577A] break-words">
+                  {calculateStats().totalCardioSessions}
+                </p>
+              </div>
+
+              <div className="bg-white p-3 rounded-xl shadow-md flex flex-col justify-between">
+                <p
+                  className="text-gray-500 text-xs line-clamp-1 mb-1"
+                  aria-label="Total Distance"
+                >
+                  Distance
+                </p>
+                <p className="text-xl font-bold text-[#22577A] break-words">
+                  {calculateStats().totalDistance}
+                </p>
+              </div>
+
+              <div className="bg-white p-3 rounded-xl shadow-md flex flex-col justify-between">
+                <p
+                  className="text-gray-500 text-xs line-clamp-1 mb-1"
+                  aria-label="Cardio Minutes"
+                >
+                  Minutes
+                </p>
+                <p className="text-xl font-bold text-[#22577A] break-words">
+                  {calculateStats().totalCardioMinutes}
+                </p>
+              </div>
+
+              <div className="bg-white p-3 rounded-xl shadow-md flex flex-col justify-between">
+                <p
+                  className="text-gray-500 text-xs line-clamp-1 mb-1"
+                  aria-label="Total Calories"
+                >
+                  Calories
+                </p>
+                <p className="text-xl font-bold text-[#22577A] break-words">
+                  {calculateStats().totalCalories}
+                </p>
+              </div>
             </div>
 
             {/* Strength Progress Chart */}
-            <div className="bg-white p-4 rounded-xl shadow-sm mb-6">
-              <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#22577A]">
+            <div className="bg-white p-4 rounded-xl shadow-sm mb-5">
+              <div className="flex flex-row items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-[#22577A]">
                   Strength Progress
                 </h3>
 
@@ -351,7 +404,7 @@ export default function ProgressTracking() {
                   <select
                     value={selectedExercise}
                     onChange={(e) => setSelectedExercise(e.target.value)}
-                    className="mt-2 md:mt-0 p-2 border border-gray-300 rounded-lg"
+                    className="p-1.5 text-xs border border-gray-200 rounded-lg bg-gray-50"
                   >
                     {getExercises().map((exercise) => (
                       <option key={exercise} value={exercise}>
@@ -360,9 +413,7 @@ export default function ProgressTracking() {
                     ))}
                   </select>
                 ) : (
-                  <p className="text-gray-500 text-sm">
-                    No exercises recorded yet
-                  </p>
+                  <span className="text-xs text-gray-500">No exercises</span>
                 )}
               </div>
 
@@ -371,14 +422,18 @@ export default function ProgressTracking() {
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart
                       data={getStrengthProgressData()}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis yAxisId="left" />
-                      <YAxis yAxisId="right" orientation="right" />
+                      <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                      <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
+                      <YAxis
+                        yAxisId="right"
+                        orientation="right"
+                        tick={{ fontSize: 12 }}
+                      />
                       <Tooltip />
-                      <Legend />
+                      <Legend wrapperStyle={{ fontSize: "12px" }} />
                       <Line
                         yAxisId="left"
                         type="monotone"
@@ -400,7 +455,7 @@ export default function ProgressTracking() {
               ) : (
                 <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg">
                   <Calendar className="h-12 w-12 text-gray-400 mb-2" />
-                  <p className="text-gray-500">
+                  <p className="text-gray-500 text-xs md:text-sm text-center px-4">
                     {selectedExercise
                       ? `No data available for ${selectedExercise} in the selected time range.`
                       : "No strength workouts recorded yet."}
@@ -410,8 +465,8 @@ export default function ProgressTracking() {
             </div>
 
             {/* Cardio Progress Chart */}
-            <div className="bg-white p-4 rounded-xl shadow-sm mb-6">
-              <h3 className="text-lg font-semibold text-[#22577A] mb-4">
+            <div className="bg-white p-3 md:p-4 rounded-xl shadow-sm mb-6">
+              <h3 className="text-base md:text-lg font-semibold text-[#22577A] mb-4">
                 Cardio Progress
               </h3>
 
@@ -420,14 +475,18 @@ export default function ProgressTracking() {
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart
                       data={getCardioData()}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis yAxisId="left" />
-                      <YAxis yAxisId="right" orientation="right" />
+                      <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                      <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
+                      <YAxis
+                        yAxisId="right"
+                        orientation="right"
+                        tick={{ fontSize: 12 }}
+                      />
                       <Tooltip />
-                      <Legend />
+                      <Legend wrapperStyle={{ fontSize: "12px" }} />
                       <Line
                         yAxisId="left"
                         type="monotone"
@@ -448,7 +507,7 @@ export default function ProgressTracking() {
               ) : (
                 <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg">
                   <Calendar className="h-12 w-12 text-gray-400 mb-2" />
-                  <p className="text-gray-500">
+                  <p className="text-gray-500 text-xs md:text-sm text-center px-4">
                     No cardio sessions recorded in the selected time range.
                   </p>
                 </div>
@@ -456,8 +515,8 @@ export default function ProgressTracking() {
             </div>
 
             {/* Calorie Tracking Chart */}
-            <div className="bg-white p-4 rounded-xl shadow-sm">
-              <h3 className="text-lg font-semibold text-[#22577A] mb-4">
+            <div className="bg-white p-3 md:p-4 rounded-xl shadow-sm">
+              <h3 className="text-base md:text-lg font-semibold text-[#22577A] mb-4">
                 Calorie Intake
               </h3>
 
@@ -466,13 +525,13 @@ export default function ProgressTracking() {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={getCalorieData()}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
+                      <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                      <YAxis tick={{ fontSize: 12 }} />
                       <Tooltip />
-                      <Legend />
+                      <Legend wrapperStyle={{ fontSize: "12px" }} />
                       <Bar
                         dataKey="value"
                         name="Calories"
@@ -485,7 +544,7 @@ export default function ProgressTracking() {
               ) : (
                 <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg">
                   <Calendar className="h-12 w-12 text-gray-400 mb-2" />
-                  <p className="text-gray-500">
+                  <p className="text-gray-500 text-xs md:text-sm text-center px-4">
                     No calorie entries recorded in the selected time range.
                   </p>
                 </div>
