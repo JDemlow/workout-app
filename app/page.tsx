@@ -32,7 +32,7 @@ export default function Home() {
     },
     {
       icon: TrendingUp,
-      title: "Progress Dashboard",
+      title: "Progress Dash",
       description: "Visualize your fitness journey with interactive charts.",
       link: "/progress",
     },
@@ -99,9 +99,10 @@ export default function Home() {
                     w-8 
                     h-8"
                 />
-                <h3 className="font-semibold text-[#22577A] mb-1">
+                <h3 className="font-semibold text-[#22577A] mb-1 text-base sm:text-sm">
                   {feature.title}
                 </h3>
+
                 <p className="text-xs text-gray-600">{feature.description}</p>
               </Link>
             ))}
