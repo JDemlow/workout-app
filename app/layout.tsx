@@ -1,7 +1,7 @@
 // app/layout.tsx
 import "./globals.css";
 import Link from "next/link";
-import { Home, Dumbbell, Footprints, Soup } from "lucide-react";
+import { Home, Dumbbell, Footprints, Soup, TrendingUp } from "lucide-react";
 
 export const metadata = {
   title: "Workout Tracker",
@@ -93,6 +93,24 @@ export default function RootLayout({
                   >
                     <Soup className="w-6 h-6" />
                     <span className="sr-only">Calories</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/progress"
+                    className="
+                      text-white 
+                      flex 
+                      items-center 
+                      space-x-2 
+                      hover:bg-white/20 
+                      p-2 
+                      rounded-xl 
+                      transition-colors"
+                    aria-label="Progress Dashboard"
+                  >
+                    <TrendingUp className="w-6 h-6" />
+                    <span className="sr-only">Progress</span>
                   </Link>
                 </li>
               </ul>

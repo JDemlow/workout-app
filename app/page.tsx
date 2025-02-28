@@ -30,6 +30,12 @@ export default function Home() {
       description: "Monitor your daily meal intake and nutritional goals.",
       link: "/calorie",
     },
+    {
+      icon: TrendingUp,
+      title: "Progress Dashboard",
+      description: "Visualize your fitness journey with interactive charts.",
+      link: "/progress",
+    },
   ];
 
   const quickStats = [
