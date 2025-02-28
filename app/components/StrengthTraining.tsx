@@ -1,5 +1,7 @@
+// app/components/StrengthTraining.tsx
 "use client";
 import { useState, useEffect } from "react";
+import { Edit, Trash2, Info } from "lucide-react";
 
 interface Workout {
   id?: number;
@@ -18,7 +20,6 @@ export default function StrengthTraining() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
 
   // Fetch existing workouts on mount
   useEffect(() => {
@@ -42,7 +43,6 @@ export default function StrengthTraining() {
     setReps("");
     setWeight("");
     setEditingId(null);
-    setIsEditing(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,7 +57,7 @@ export default function StrengthTraining() {
     };
 
     try {
-      if (isEditing && editingId) {
+      if (editingId) {
         // Update existing workout
         const response = await fetch(`/api/strength-workouts/${editingId}`, {
           method: "PUT",
@@ -70,15 +70,11 @@ export default function StrengthTraining() {
         }
 
         const updatedWorkout = await response.json();
-
-        // Update the workouts list with the edited workout
         setWorkouts(
           workouts.map((workout) =>
             workout.id === editingId ? updatedWorkout : workout
           )
         );
-
-        resetForm();
       } else {
         // Create new workout
         const response = await fetch("/api/strength-workouts", {
@@ -92,19 +88,16 @@ export default function StrengthTraining() {
         }
 
         const createdWorkout = await response.json();
-
-        // Update the workouts list with the new workout
         setWorkouts([...workouts, createdWorkout]);
-
-        resetForm();
       }
-    } catch (error) {
-      console.error(error);
-      setError(isEditing ? "Error updating workout" : "Error logging workout");
+
+      resetForm();
+    } catch (err) {
+      console.error(err);
+      setError(editingId ? "Error updating workout" : "Error logging workout");
     }
   };
 
-  // Delete a workout
   const handleDelete = async (id: number) => {
     try {
       const response = await fetch(`/api/strength-workouts/${id}`, {
@@ -116,175 +109,283 @@ export default function StrengthTraining() {
         throw new Error(errorData.error || "Failed to delete workout");
       }
 
-      // Remove the workout from state after successful deletion
       setWorkouts(workouts.filter((workout) => workout.id !== id));
-
-      // If we were editing this workout, reset the form
-      if (editingId === id) {
-        resetForm();
-      }
     } catch (err) {
       console.error(err);
       setError("Error deleting workout");
     }
   };
 
-  // Start editing a workout
-  const handleEdit = (workout: Workout) => {
-    if (workout.id) {
-      setEditingId(workout.id);
-      setExercise(workout.exercise);
-      setSets(workout.sets.toString());
-      setReps(workout.reps.toString());
-      setWeight(workout.weight.toString());
-      setIsEditing(true);
-    }
-  };
-
-  // Cancel editing
-  const handleCancelEdit = () => {
-    resetForm();
-  };
-
   return (
-    <section className="max-w-md mx-auto p-4 bg-white shadow-md rounded">
-      <h2 className="text-2xl font-semibold mb-4">
-        {isEditing ? "Edit Workout" : "Strength Training"}
-      </h2>
+    <section
+      className="p-4 max-w-md mx-auto"
+      aria-labelledby="strength-tracker-heading"
+    >
+      <div
+        className="bg-[#C7F9CC] rounded-3xl overflow-hidden shadow-lg"
+        role="region"
+        aria-live="polite"
+      >
+        <div
+          className="bg-gradient-to-r from-[#57CC99] to-[#38A3A5] p-4"
+          role="banner"
+        >
+          <h2
+            id="strength-tracker-heading"
+            className="text-2xl font-bold text-white text-center"
+          >
+            Strength Tracker
+          </h2>
+        </div>
 
-      {error && <p className="text-red-500 mb-4">{error}</p>}
+        {error && (
+          <div
+            role="alert"
+            className="bg-red-600 text-white p-3 text-center flex items-center justify-center"
+          >
+            <Info className="mr-2 w-5 h-5" aria-hidden="true" />
+            {error}
+          </div>
+        )}
 
-      {loading ? (
-        <p>Loading workouts...</p>
-      ) : (
-        <>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label
-                htmlFor="exercise"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Exercise
-              </label>
-              <input
-                id="exercise"
-                type="text"
-                value={exercise}
-                onChange={(e) => setExercise(e.target.value)}
-                required
-                className="mt-1 block w-full rounded border-gray-300 shadow-sm"
-              />
-            </div>
+        <form
+          onSubmit={handleSubmit}
+          className="p-6 space-y-4"
+          aria-describedby="form-instructions"
+        >
+          <p id="form-instructions" className="sr-only">
+            Fill out the form to log a new strength training workout
+          </p>
+
+          <div>
+            <label
+              htmlFor="exercise"
+              className="block text-sm font-medium text-gray-800 mb-2"
+            >
+              Exercise
+            </label>
+            <input
+              id="exercise"
+              type="text"
+              value={exercise}
+              onChange={(e) => setExercise(e.target.value)}
+              required
+              aria-required="true"
+              placeholder="What exercise did you do?"
+              className="
+                w-full 
+                px-4 
+                py-3 
+                border-2
+                border-[#22577A]
+                bg-white 
+                rounded-xl 
+                focus:ring-4 
+                focus:ring-[#22577A] 
+                focus:border-[#22577A]
+                text-base
+                text-gray-900
+                placeholder-gray-600"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label
                 htmlFor="sets"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-800 mb-2"
               >
                 Sets
               </label>
               <input
                 id="sets"
                 type="number"
+                min="1"
                 value={sets}
                 onChange={(e) => setSets(e.target.value)}
                 required
-                className="mt-1 block w-full rounded border-gray-300 shadow-sm"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="reps"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Reps
-              </label>
-              <input
-                id="reps"
-                type="number"
-                value={reps}
-                onChange={(e) => setReps(e.target.value)}
-                required
-                className="mt-1 block w-full rounded border-gray-300 shadow-sm"
+                aria-required="true"
+                placeholder="Sets"
+                className="
+                  w-full 
+                  px-4 
+                  py-3 
+                  border-2
+                  border-[#22577A]
+                  bg-white 
+                  rounded-xl 
+                  focus:ring-4 
+                  focus:ring-[#22577A] 
+                  focus:border-[#22577A]
+                  text-base
+                  text-gray-900
+                  placeholder-gray-600"
               />
             </div>
             <div>
               <label
                 htmlFor="weight"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-800 mb-2"
               >
                 Weight (lbs)
               </label>
               <input
                 id="weight"
                 type="number"
+                min="0"
+                step="0.5"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
                 required
-                className="mt-1 block w-full rounded border-gray-300 shadow-sm"
+                aria-required="true"
+                placeholder="Weight"
+                className="
+                  w-full 
+                  px-4 
+                  py-3 
+                  border-2
+                  border-[#22577A]
+                  bg-white 
+                  rounded-xl 
+                  focus:ring-4 
+                  focus:ring-[#22577A] 
+                  focus:border-[#22577A]
+                  text-base
+                  text-gray-900
+                  placeholder-gray-600"
               />
             </div>
+          </div>
 
-            <div className="flex space-x-2">
-              <button
-                type="submit"
-                className={`flex-1 py-2 px-4 ${
-                  isEditing
-                    ? "bg-green-500 hover:bg-green-600"
-                    : "bg-blue-500 hover:bg-blue-600"
-                } text-white rounded`}
+          <div>
+            <label
+              htmlFor="reps"
+              className="block text-sm font-medium text-gray-800 mb-2"
+            >
+              Reps
+            </label>
+            <input
+              id="reps"
+              type="number"
+              min="1"
+              value={reps}
+              onChange={(e) => setReps(e.target.value)}
+              required
+              aria-required="true"
+              placeholder="Reps"
+              className="
+                w-full 
+                px-4 
+                py-3 
+                border-2
+                border-[#22577A]
+                bg-white 
+                rounded-xl 
+                focus:ring-4 
+                focus:ring-[#22577A] 
+                focus:border-[#22577A]
+                text-base
+                text-gray-900
+                placeholder-gray-600"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="
+              w-full 
+              bg-[#22577A] 
+              text-white 
+              py-4 
+              rounded-xl 
+              hover:bg-opacity-90 
+              transition-colors 
+              text-base 
+              font-semibold 
+              active:scale-95
+              focus:ring-4
+              focus:ring-[#57CC99]"
+            aria-label={editingId ? "Update Workout" : "Log New Workout"}
+          >
+            {editingId ? "Update Workout" : "Log Workout"}
+          </button>
+        </form>
+
+        {loading && (
+          <div className="text-center p-4 text-gray-700" aria-live="polite">
+            Loading workouts...
+          </div>
+        )}
+
+        {!loading && workouts.length > 0 && (
+          <div
+            className="divide-y divide-gray-300"
+            role="list"
+            aria-label="Logged Workouts"
+          >
+            {workouts.map((workout) => (
+              <div
+                key={workout.id}
+                className="
+                  flex 
+                  justify-between 
+                  items-center 
+                  p-4 
+                  bg-white 
+                  hover:bg-gray-50 
+                  transition-colors"
+                role="listitem"
               >
-                {isEditing ? "Update Workout" : "Log Workout"}
-              </button>
-
-              {isEditing && (
-                <button
-                  type="button"
-                  onClick={handleCancelEdit}
-                  className="flex-1 py-2 px-4 bg-gray-500 text-white rounded hover:bg-gray-600"
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
-          </form>
-
-          {workouts.length > 0 && (
-            <div className="mt-6">
-              <h3 className="text-xl font-semibold">Logged Workouts</h3>
-              <ul className="mt-2">
-                {workouts.map((workout) => (
-                  <li
-                    key={workout.id}
-                    className="border-b py-2 flex justify-between items-center"
+                <div>
+                  <p className="font-medium text-gray-900">
+                    {workout.exercise}
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    {workout.sets} sets x {workout.reps} reps @ {workout.weight}{" "}
+                    lbs
+                  </p>
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => {
+                      setEditingId(workout.id!);
+                      setExercise(workout.exercise);
+                      setSets(workout.sets.toString());
+                      setReps(workout.reps.toString());
+                      setWeight(workout.weight.toString());
+                    }}
+                    className="
+                      p-3 
+                      bg-[#22577A]/10 
+                      rounded-full 
+                      hover:bg-[#22577A]/20 
+                      active:scale-95
+                      focus:ring-2
+                      focus:ring-[#22577A]"
+                    aria-label={`Edit workout: ${workout.exercise}`}
                   >
-                    <div>
-                      <div className="font-medium">{workout.exercise}</div>
-                      <div className="text-sm text-gray-600">
-                        {workout.sets} sets x {workout.reps} reps @{" "}
-                        {workout.weight} lbs
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleEdit(workout)}
-                        className="text-sm text-blue-500 hover:underline"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => workout.id && handleDelete(workout.id)}
-                        className="text-sm text-red-500 hover:underline"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </>
-      )}
+                    <Edit className="w-6 h-6 text-[#22577A]" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(workout.id!)}
+                    className="
+                      p-3 
+                      bg-red-500/10 
+                      rounded-full 
+                      hover:bg-red-500/20 
+                      active:scale-95
+                      focus:ring-2
+                      focus:ring-red-500"
+                    aria-label={`Delete workout: ${workout.exercise}`}
+                  >
+                    <Trash2 className="w-6 h-6 text-red-500" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </section>
   );
 }
